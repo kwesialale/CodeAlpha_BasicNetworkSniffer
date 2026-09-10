@@ -71,11 +71,11 @@ For each captured packet, the table and detail view show:
 |---|---|
 | # | Packet number in the current session |
 | Time | Timestamp the packet was captured |
-| Protocol | TCP, UDP, ICMP, or Unknown |
+| Protocol | TCP, UDP, ICMP, DNS, HTTP, HTTPS, or Unknown |
 | Src IP / Dst IP | Source and destination IP addresses |
 | Src Port / Dst Port | Source and destination ports (TCP/UDP only) |
 | Length | Total packet size in bytes |
-| Payload Preview | TCP flags, DNS/UDP label, or a short ASCII preview of the payload |
+| Payload Preview | DNS query name, HTTP method/host/path, "Encrypted (TLS)" for HTTPS, TCP flags, or a short ASCII preview for other payloads |
 
 Double-clicking a row also shows a full hex dump and ASCII preview of the raw payload where available.
 
@@ -85,7 +85,9 @@ Double-clicking a row also shows a full hex dump and ASCII preview of the raw pa
 
 ## A note on the traffic you'll see
 
-A lot of the payload previews will look like garbled symbols rather than readable text - that's normal. Most modern traffic (anything on port 443) is HTTPS/TLS encrypted, so trying to read the payload as plain text just produces random-looking characters. That's actually a sign the encryption is working, not a bug in the script.
+Port 443 (HTTPS) traffic is automatically detected and labeled `Encrypted (TLS)` instead of trying to decode it, since TLS-encrypted data can't be read as plain text anyway - it would just show up as random-looking symbols. That's a normal part of how HTTPS works, not something wrong with the capture.
+
+Plain HTTP (port 80) and DNS (port 53) traffic, on the other hand, are not encrypted, so you'll see the actual domain being looked up for DNS queries, and the method/host/path for HTTP requests.
 
 ![Capture summary](Screenshot%202026-09-10%20at%208.47.17%20PM.png)
 
