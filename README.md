@@ -94,11 +94,10 @@ Plain HTTP (port 80) and DNS (port 53) traffic, on the other hand, are not encry
 ## Files in this repo
 
 - `network_sniffer.py` - the main script
+- `README.md` - this file
 - `requirements.txt` - just `scapy`
-- `.gitignore` - keeps raw capture files out of the repo
-- `screenshot.png` - a screenshot of it running
-- `sample_capture.pcap` - one example capture session
-
+- `screenshot_1.png`, `screenshot_2.png`, `screenshot_3.png` - screenshots of it running
+- 
 ## Ethical note
 
 Only run this on a network you own or have permission to monitor. This was built for learning purposes as part of the internship, not for use on networks you don't control.
