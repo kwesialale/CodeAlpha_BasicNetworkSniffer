@@ -13,6 +13,8 @@ from scapy.all import TCP
 from scapy.all import UDP
 from scapy.all import ICMP
 from scapy.all import Raw
+from scapy.all import DNS
+from scapy.layers.http import HTTP
 from scapy.utils import wrpcap
 
 
@@ -202,6 +204,7 @@ class NetworkSniffer:
         dst_port = '-'
         protocol = 'Unknown'
         payload_preview = '-'
+        app_layer_handled = False
         
         # check for IP layer
         if packet.haslayer(IP):
@@ -209,24 +212,64 @@ class NetworkSniffer:
             src_ip = ip_layer.src
             dst_ip = ip_layer.dst
             
+            # check application layer first so it takes priority
+            if packet.haslayer(DNS):
+                protocol = 'DNS'
+                app_layer_handled = True
+                try:
+                    dns_layer = packet[DNS]
+                    if dns_layer.qd is not None:
+                        qname = dns_layer.qd.qname.decode('utf-8', errors='ignore').rstrip('.')
+                        payload_preview = f"Query: {qname}"
+                    elif dns_layer.an is not None:
+                        payload_preview = "DNS Response"
+                except Exception:
+                    payload_preview = 'DNS Packet'
+            elif packet.haslayer(HTTP):
+                protocol = 'HTTP'
+                app_layer_handled = True
+                try:
+                    http_layer = packet[HTTP]
+                    if hasattr(http_layer, 'Method'):
+                        method = http_layer.Method.decode('utf-8', errors='ignore')
+                        host = http_layer.Host.decode('utf-8', errors='ignore') if hasattr(http_layer, 'Host') and http_layer.Host else '-'
+                        path = http_layer.Path.decode('utf-8', errors='ignore') if hasattr(http_layer, 'Path') and http_layer.Path else '/'
+                        payload_preview = f"{method} {host}{path}"
+                    elif hasattr(http_layer, 'Response'):
+                        payload_preview = f"Response: {http_layer.Response}"
+                except Exception:
+                    payload_preview = 'HTTP Packet'
+            
             # check transport protocols
-            if packet.haslayer(TCP):
+            elif packet.haslayer(TCP):
                 src_port = str(packet[TCP].sport)
                 dst_port = str(packet[TCP].dport)
                 protocol = 'TCP'
-                flags = packet[TCP].flags
-                payload_preview = f"Flags: {flags}"
+                # check if it's HTTPS by port (encrypted, no HTTP layer visible)
+                if packet[TCP].dport == 443 or packet[TCP].sport == 443:
+                    protocol = 'HTTPS'
+                    payload_preview = 'Encrypted (TLS)'
+                    app_layer_handled = True
+                else:
+                    flags = packet[TCP].flags
+                    payload_preview = f"Flags: {flags}"
             elif packet.haslayer(UDP):
                 src_port = str(packet[UDP].sport)
                 dst_port = str(packet[UDP].dport)
                 protocol = 'UDP'
-                payload_preview = 'UDP Packet'
+                # check for DNS by port if layer detection failed
+                if packet[UDP].dport == 53 or packet[UDP].sport == 53:
+                    protocol = 'DNS'
+                    payload_preview = 'DNS Packet'
+                    app_layer_handled = True
+                else:
+                    payload_preview = 'UDP Packet'
             elif packet.haslayer(ICMP):
                 protocol = 'ICMP'
                 payload_preview = f"Type: {packet[ICMP].type}"
         
-        # try to get payload preview
-        if packet.haslayer(Raw):
+        # only add a generic preview if DNS/HTTP/HTTPS didn't already handle it above
+        if packet.haslayer(Raw) and not app_layer_handled:
             raw_data = packet[Raw].load
             try:
                 # first 30 bytes as text for preview
@@ -390,24 +433,57 @@ class NetworkSniffer:
         else:
             detail_text.insert(tk.END, "No IP layer found\n\n")
         
+        # Application layer details
+        if packet.haslayer(DNS):
+            detail_text.insert(tk.END, "Application Protocol: DNS\n")
+            try:
+                dns_layer = packet[DNS]
+                if dns_layer.qd is not None:
+                    qname = dns_layer.qd.qname.decode('utf-8', errors='ignore').rstrip('.')
+                    detail_text.insert(tk.END, f"DNS Query: {qname}\n")
+                    qtype = dns_layer.qd.qtype
+                    detail_text.insert(tk.END, f"Query Type: {qtype}\n")
+                if dns_layer.an is not None:
+                    detail_text.insert(tk.END, "DNS Response received\n")
+            except Exception:
+                detail_text.insert(tk.END, "DNS details unavailable\n")
+            detail_text.insert(tk.END, "\n")
+        
+        if packet.haslayer(HTTP):
+            detail_text.insert(tk.END, "Application Protocol: HTTP\n")
+            try:
+                http_layer = packet[HTTP]
+                if hasattr(http_layer, 'Method') and http_layer.Method:
+                    method = http_layer.Method.decode('utf-8', errors='ignore')
+                    detail_text.insert(tk.END, f"Method: {method}\n")
+                if hasattr(http_layer, 'Host') and http_layer.Host:
+                    host = http_layer.Host.decode('utf-8', errors='ignore')
+                    detail_text.insert(tk.END, f"Host: {host}\n")
+                if hasattr(http_layer, 'Path') and http_layer.Path:
+                    path = http_layer.Path.decode('utf-8', errors='ignore')
+                    detail_text.insert(tk.END, f"Path: {path}\n")
+            except Exception:
+                detail_text.insert(tk.END, "HTTP details unavailable\n")
+            detail_text.insert(tk.END, "\n")
+        
         # Protocol and port info
         if packet.haslayer(TCP):
-            detail_text.insert(tk.END, f"Protocol: TCP\n")
+            detail_text.insert(tk.END, f"Transport Protocol: TCP\n")
             detail_text.insert(tk.END, f"Source Port: {packet[TCP].sport}\n")
             detail_text.insert(tk.END, f"Destination Port: {packet[TCP].dport}\n")
             detail_text.insert(tk.END, f"Flags: {packet[TCP].flags}\n\n")
         elif packet.haslayer(UDP):
-            detail_text.insert(tk.END, f"Protocol: UDP\n")
+            detail_text.insert(tk.END, f"Transport Protocol: UDP\n")
             detail_text.insert(tk.END, f"Source Port: {packet[UDP].sport}\n")
             detail_text.insert(tk.END, f"Destination Port: {packet[UDP].dport}\n\n")
         elif packet.haslayer(ICMP):
-            detail_text.insert(tk.END, f"Protocol: ICMP\n")
+            detail_text.insert(tk.END, f"Transport Protocol: ICMP\n")
             detail_text.insert(tk.END, f"Type: {packet[ICMP].type}\n")
             if hasattr(packet[ICMP], 'code'):
                 detail_text.insert(tk.END, f"Code: {packet[ICMP].code}\n")
             detail_text.insert(tk.END, "\n")
         else:
-            detail_text.insert(tk.END, "Protocol: Unknown/Other\n\n")
+            detail_text.insert(tk.END, "Transport Protocol: Unknown/Other\n\n")
         
         detail_text.insert(tk.END, f"Packet Length: {len(packet)} bytes\n")
         detail_text.insert(tk.END, f"Time: {datetime.now().strftime('%H:%M:%S')}\n\n")
@@ -471,4 +547,5 @@ if not check_privileges():
 if __name__ == "__main__":
     root = tk.Tk()
     app = NetworkSniffer(root)
+    root.mainloop()
     root.mainloop()
