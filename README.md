@@ -57,13 +57,37 @@ pip install scapy --break-system-packages
 sudo python3 network_sniffer.py
 ```
 
+![Sniffer running](Screenshot%202026-09-10%20at%208.34.27%20PM.png)
+
 It needs to run with sudo/admin rights, or it will exit immediately with an error - raw socket access for packet capture isn't allowed for normal user accounts.
 
 While it's running, click **Start**, then generate some traffic in another window (browse a site, `ping google.com`, `curl` something) so there's actually something to capture. Double-click any row once packets start coming in to see the full details.
 
+## Packet Information Displayed
+
+For each captured packet, the table and detail view show:
+
+| Field | Description |
+|---|---|
+| # | Packet number in the current session |
+| Time | Timestamp the packet was captured |
+| Protocol | TCP, UDP, ICMP, or Unknown |
+| Src IP / Dst IP | Source and destination IP addresses |
+| Src Port / Dst Port | Source and destination ports (TCP/UDP only) |
+| Length | Total packet size in bytes |
+| Payload Preview | TCP flags, DNS/UDP label, or a short ASCII preview of the payload |
+
+Double-clicking a row also shows a full hex dump and ASCII preview of the raw payload where available.
+
+## Screenshots
+
+![Packet details view](Screenshot%202026-09-10%20at%208.46.44%20PM.png)
+
 ## A note on the traffic you'll see
 
 A lot of the payload previews will look like garbled symbols rather than readable text - that's normal. Most modern traffic (anything on port 443) is HTTPS/TLS encrypted, so trying to read the payload as plain text just produces random-looking characters. That's actually a sign the encryption is working, not a bug in the script.
+
+![Capture summary](Screenshot%202026-09-10%20at%208.47.17%20PM.png)
 
 ## Files in this repo
 
@@ -80,3 +104,7 @@ Only run this on a network you own or have permission to monitor. This was built
 ## What I learned
 
 This was my first real hands-on experience with packet-level networking. Working through this taught me how TCP/UDP/ICMP actually look different at the packet level, how a normal TCP handshake shows up (SYN, SYN-ACK, ACK), and why encrypted traffic looks the way it does when you try to inspect it. It also gave me a much better idea of how tools like Wireshark work under the hood, since Scapy is doing a lot of the same core work, just in a scriptable way.
+
+## Conclusion
+
+This project gave me hands-on experience with real network traffic instead of just reading about how protocols work. Building the GUI around Scapy helped me understand not just how to capture packets, but how to actually make sense of what's happening on a network in real time, identifying protocols, tracking connections, and recognizing what encrypted traffic looks like versus plain data. It's a small project, but it covers the fundamentals that a lot of cybersecurity work builds on.
