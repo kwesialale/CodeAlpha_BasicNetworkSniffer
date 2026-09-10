@@ -1,8 +1,8 @@
-# Network Packet Sniffer - CodeAlpha Task 1
+# Network Packet Sniffer
 
 This is my Task 1 project for the CodeAlpha Cybersecurity Internship. It's a Python tool with a simple GUI that captures live network traffic and shows what's actually happening on the network in real time - source/destination IPs, protocols, ports, and a payload preview for each packet.
 
-## Objectives
+## 🎯 Objectives
 
 This project was built to meet the goals of Task 1 (Basic Network Sniffer):
 
@@ -12,7 +12,7 @@ This project was built to meet the goals of Task 1 (Basic Network Sniffer):
 - Use a packet-capture library (Scapy) instead of building raw socket handling from scratch
 - Display useful information for each packet - source/destination IPs, protocols, ports, and payload
 
-## Features
+## ✨ Features
 
 - Captures live packets in real time, up to 100 per session
 - Simple dark-themed GUI (Tkinter) instead of a plain scrolling terminal
@@ -22,7 +22,7 @@ This project was built to meet the goals of Task 1 (Basic Network Sniffer):
 - Start / Stop / Clear controls so you can manage a capture session without restarting the script
 - Checks for admin/root privileges on startup (cross-platform: works on both Windows and Linux/Mac) since raw packet capture needs elevated permissions
 
-## Technologies & Libraries Used
+## 🛠️ Technologies & Libraries Used
 
 - **Python 3** - the language the whole project is written in
 - **Scapy** - handles the actual packet capture and lets me read each protocol layer (Ethernet, IP, TCP, UDP, ICMP) without building that from scratch
