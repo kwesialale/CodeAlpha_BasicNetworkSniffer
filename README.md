@@ -109,3 +109,9 @@ This was my first real hands-on experience with packet-level networking. Working
 ## Conclusion
 
 This project gave me hands-on experience with real network traffic instead of just reading about how protocols work. Building the GUI around Scapy helped me understand not just how to capture packets, but how to actually make sense of what's happening on a network in real time, identifying protocols, tracking connections, and recognizing what encrypted traffic looks like versus plain data. It's a small project, but it covers the fundamentals that a lot of cybersecurity work builds on.
+
+## LinkedIn link
+
+Check out mu LinkedIn for a video demo
+
+https://www.linkedin.com/feed/update/urn:li:ugcPost:7504620914828009473/
