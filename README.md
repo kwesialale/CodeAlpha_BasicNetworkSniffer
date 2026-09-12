@@ -112,6 +112,6 @@ This project gave me hands-on experience with real network traffic instead of ju
 
 ## LinkedIn link
 
-Check out mu LinkedIn for a video demo
+Check out my LinkedIn for a video demo
 
 https://www.linkedin.com/feed/update/urn:li:ugcPost:7504620914828009473/
